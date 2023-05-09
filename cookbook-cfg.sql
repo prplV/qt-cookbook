@@ -148,6 +148,40 @@ begin
 	where m_name = mtemp.meal_name;
 end;
 $$ language plpgsql;
+
+/*stat functions*/
+create or replace function stat_meal_ingred()
+returns table(meal_name varchar(15), ingred_count int) as
+$$
+begin
+	return query select * from multy_table_view_mi;
+end;
+$$ language plpgsql;
+
+create or replace function stat_meal_cat()
+returns table(meal_name varchar(15), cat_count int) as
+$$
+begin
+	return query select * from multy_table_view_mc;
+end;
+$$ language plpgsql;
+
+create or replace function stat_category_meal()
+returns table(category varchar(15), count_meal int) as
+$$
+begin 
+	return query select * from multy_table_view_cm;
+end;
+$$ language plpgsql;
+
+create or replace function stat_ingred_meal()
+returns table(name_ingredient varchar(25), count_meal int) as
+$$
+begin 
+	return query select * from multy_table_view_im;
+end; 
+$$ language plpgsql;
+/*end of sf block*/
 ------------------------/FUNCTIONES-----------------------
 
 ------------------------PROCEDURES------------------------
@@ -266,6 +300,157 @@ begin
 end;
 $$ language plpgsql;
 
+create or replace procedure update_meal_name(old_m_name varchar(15), new_m_name varchar(15)) as
+$$
+declare 
+	res integer;
+begin
+	if (exists(select 1 from meal where meal_name =  old_m_name)) then
+		res := 1;
+	else 
+		res := 0;
+	end if;
+	if (res = 1) then 
+		update meal set meal_name = new_m_name where meal_name = old_m_name;
+		commit;
+	elseif (res = 0) then
+		rollback;
+	end if;
+end;
+$$  language plpgsql;
+
+create or replace procedure update_meal_desc(m_name varchar(15), m_desc text) as
+$$
+declare 
+	res integer;
+begin
+	if (exists(select 1 from meal where meal_name =  m_name)) then
+		res := 1;
+	else 
+		res := 0;
+	end if;
+	if (res = 1) then 
+		update meal set desc_meal = m_desc where meal_name = m_name;
+		commit;
+	elseif (res = 0) then
+		rollback;
+	end if;
+end;
+$$  language plpgsql;
+
+create or replace procedure update_meal_htc(m_name varchar(15), m_htc text) as
+$$
+declare 
+	res integer;
+begin
+	if (exists(select 1 from meal where meal_name = m_name)) then
+		res := 1;
+	else 
+		res := 0;
+	end if;
+	if (res = 1) then 
+		update meal set htc_meal = m_htc where meal_name = m_name;
+		commit;
+	elseif (res = 0) then
+		rollback;
+	end if;
+end;
+$$  language plpgsql;
+
+create or replace procedure update_ingred_name(i_name varchar(25), new_i_name varchar(25)) as
+$$
+declare 
+	res integer;
+begin
+	if (exists(select 1 from ingredient where name_ingred =  i_name)) then
+		res := 1;
+	else 
+		res := 0;
+	end if;
+	if (res = 1) then 
+		update ingredient set name_ingred = new_i_name where name_ingred = i_name;
+		commit;
+	elseif (res = 0) then
+		rollback;
+	end if;
+end;
+$$  language plpgsql;
+
+create or replace procedure update_ingred_cost_unit(i_name varchar(25), new_cu int) as
+$$
+declare 
+	res integer;
+begin
+	if (exists(select 1 from ingredient where name_ingred =  i_name)) then
+		res := 1;
+	else 
+		res := 0;
+	end if;
+	if (res = 1) then 
+		update ingredient set cost_unit_ingred = new_cu where name_ingred = i_name;
+		commit;
+	elseif (res = 0) then
+		rollback;
+	end if;
+end;
+$$  language plpgsql;
+
+create or replace procedure update_ingred_nutval(i_name varchar(25), new_nutval int) as
+$$
+declare 
+	res integer;
+begin
+	if (exists(select 1 from ingredient where name_ingred = i_name)) then
+		res := 1;
+	else 
+		res := 0;
+	end if;
+	if (res = 1) then 
+		update ingredient set nutval_ingred = new_nutval where name_ingred = i_name;
+		commit;
+	elseif (res = 0) then
+		rollback;
+	end if;
+end;
+$$  language plpgsql;
+
+create or replace procedure update_ingred_id_cat(i_name varchar(25), id_cat_i int) as
+$$
+declare 
+	res integer;
+begin
+	if (exists(select 1 from ingredient where name_ingred = i_name)) then
+		res := 1;
+	else 
+		res := 0;
+	end if;
+	if (res = 1) then 
+		update ingredient set id_cat_ingred = id_cat_i where name_ingred = i_name;
+		commit;
+	elseif (res = 0) then
+		rollback;
+	end if;
+end;
+$$  language plpgsql;
+
+create or replace procedure update_category_name(cat_name varchar(12), new_cat_name varchar(12)) as
+$$
+declare
+	res integer;
+begin
+	if (exists(select 1 from category where name_category = cat_name)) then
+		res := 1;
+	else 
+		res := 0;
+	end if;
+	if (res = 1) then 
+		update category set name_category = new_cat_name where name_category = cat_name;
+		commit;
+	elseif (res = 0) then
+		rollback;
+	end if;
+end;
+$$ language plpgsql;
 ------------------------/PROCEDURES-----------------------
 
 ------------------------TRIGGERS------------------------
@@ -294,23 +479,77 @@ create type custom_ingredients as (
 -----------------------/TYPES-----------------------
 
 ------------------------INDEXES------------------------
+create index idx_meal 
+	on meal(meal_name);
 
+create index idx_category 
+	on category(name_category);
+
+create index idx_ingredient 
+	on ingredient(name_ingred, cost_unit_ingred, nutval_ingred, id_cat_ingred);
+	
+create index idx_meal_log 
+	on meal_log(status_ml, time_ml);
+	
+create index idx_ingredient_log 
+	on ingredient_log(status_il, time_il);
+	
+create index idx_category_log 
+	on category_log(status_cl, time_cl);
 ------------------------/INDEXES-----------------------
+
+------------------------CURSORS------------------------
+
+------------------------/CURSORS-----------------------
+
+------------------------ROLES------------------------
+
+------------------------/ROLES-----------------------
 
 ------------------------VIEWS------------------------
 create view meal_list as
-	select meal_name as name, desc_meal as description from meal;
+	select meal_name as mname, desc_meal as description from meal order by meal_name asc;
 
 create view category_list as
-	select name_category as name from category;
+	select name_category as cname from category order by name_category;
 
 create view ingredients_list as
-	select name_ingred as name from ingredient;
+	select name_ingred as iname from ingredient;
+
+create view multy_table_view_mc as
+	select mtemp.meal_name as meal, count(*) as count_categories
+	from meal mtemp
+	join meal_category mctemp on mtemp.id_meal = mctemp.id_meal_mc
+	group by mtemp.meal_name
+	order by mtemp.meal_name asc;
+	
+create view multy_table_view_mi as
+	select meal_name, count(*) 
+	from meal 
+	join meal_ingredient on id_meal = id_meal_mi 
+	group by meal_name having meal_name not like '%no meal name%'
+	order by meal_name asc;
+
+create view multy_table_view_cm as
+	select name_category, count(*) 
+	from category
+	join meal_category
+	on id_category = id_category_mc
+	group by name_category having name_category not like '%undefined category name%'
+	order by name_category asc;
+
+create view multy_table_view_im as
+	select name_ingred, count(*)
+	from ingredient
+	join meal_ingredient on id_ingred = id_ingredient_mi
+	group by name_ingred having name_ingred not like '%no ingredient name%'
+	order by name_ingred asc;
 ------------------------/VIEWS-----------------------
 
 -----------------------QUERIES------------------------
 select * from meal_list;
 select * from meal_log;
+select * from category_log;
 select * from meal;
 select * from category;
 
@@ -320,6 +559,9 @@ delete from meal where id_meal = '3';
 delete from meal_log where id_ml < 100;
 select * from find_current_meal('test-meal');
 select * from find_meal_categories('dw');
+select * from multy_table_view_mc;
 
 call insert_new_category('Мясное');
 ------------------------/QUERIES-----------------------
+
+
