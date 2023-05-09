@@ -16,6 +16,7 @@ HelloPage::~HelloPage()
 
 void HelloPage::on_loginButton_clicked()
 {
+    //ui->logFrame->setVisible(false);  very very vajno
     if (ui->lineEdit->text()  ==  "")
     {
         ui->errorHandlerLabel->setText("Empty Login field!");
@@ -30,4 +31,9 @@ void HelloPage::on_loginButton_clicked()
     /*
         db requests
     */
+}
+
+void HelloPage::on_logoutButton_clicked()
+{
+
 }

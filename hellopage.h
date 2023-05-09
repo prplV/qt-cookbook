@@ -17,6 +17,7 @@ public:
 
 private slots:
     void on_loginButton_clicked();
+    void on_logoutButton_clicked();
 
 private:
     Ui::HelloPage *ui;
