@@ -27,6 +27,8 @@ create table ingredient(
 	constraint fk_ingred_catingred foreign key(id_cat_ingred) references cat_ingredient(id_ing_cat)
 		on delete set default
 );
+alter table ingredient alter column nutval_ingred type numeric;
+alter table ingredient alter column cost_unit_ingred type numeric;
 
 create table meal_category(
 	id_adj_mc serial not null primary key,
@@ -125,7 +127,6 @@ begin
 end;
 $$ language plpgsql;
 
-------------------------BAGS
 create or replace function find_meal_categories(m_name varchar(15))
 returns setof custom_categories as 
 $$
@@ -136,7 +137,6 @@ begin
 end;
 $$ language plpgsql;
 
-------------------------BAGS
 create or replace function find_meal_ingredients(m_name varchar(15))
 returns setof custom_ingredients as
 $$
@@ -616,7 +616,11 @@ insert into cat_ingredient(type_unit) values
 ('ст.л.'),
 ('ч.л.'),
 ('мл.'),
-('веточка(и)');
+('веточка(и)'),
+('кг'),
+('л'),
+('веточка(ек)'),
+('щепотка');
 insert into meal(meal_name, desc_meal, htc_meal) values
 ('Луковый хлеб','Луковый хлеб привлечет на кухню ваших домочадцев уже в процессе выпекания в духовке: дивный аромат никого не оставит равнодушным.',
  'Приготовить опару для хлеба. Смешать дрожжи и 1 ст. л. муки. Влить в большую миску теплое молоко, добавить соль и сахар, тщательно перемешать до полного растворения. Всыпать смесь муки и дрожжей, размешать. Миску накрыть и поставить в теплое место на 20 мин. 
