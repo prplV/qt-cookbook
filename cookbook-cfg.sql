@@ -142,10 +142,40 @@ returns setof custom_ingredients as
 $$
 begin
 	return query select itemp.name_ingred, itemp.cost_unit_ingred, itemp.nutval_ingred
-		from meal mtemp, ingredients itemp, meal_ingredient mitemp
+		from meal mtemp, ingredient itemp, meal_ingredient mitemp
 	where m_name = mtemp.meal_name and mtemp.id_meal = mitemp.id_meal_mi and itemp.id_ingred = mitemp.id_ingredient_mi;
 end;
 $$ language plpgsql;
+
+create or replace function perform_ingredients(m_name varchar(15))
+returns table (ingredient varchar(25), ingredient_count numeric, category_ingredient text) as
+$$
+begin
+	return query
+	select name_ingred, count_ingred_mi, type_unit from ingredient, meal, cat_ingredient, meal_ingredient
+	where m_name = meal_name and id_meal_mi = id_meal 
+	and id_ingred = id_ingredient_mi and id_cat_ingred = id_ing_cat;
+end;
+$$ language plpgsql;
+
+create or replace function get_meal_cost(m_name varchar(12))
+returns table(final_cost numeric) as
+$$
+begin
+	return query select sum(count_ingred_mi * cost_unit_ingred) from meal, meal_ingredient, ingredient
+	where id_meal = id_meal_mi and m_name = meal_name and id_ingred = id_ingredient_mi;
+end;
+$$ language plpgsql;
+
+create or replace function get_meal_nutval(m_name varchar(12))
+returns table(final_nutval numeric) as
+$$
+begin
+	return query select sum(count_ingred_mi * nutval_ingred) from meal, meal_ingredient, ingredient
+	where id_meal = id_meal_mi and m_name = meal_name and id_ingred = id_ingredient_mi;
+end;
+$$ language plpgsql;
+
 
 /*stat functions*/
 create or replace function stat_meal_ingred()
@@ -471,8 +501,8 @@ create type custom_categories as (
 );
 create type custom_ingredients as (
 	_name_ingred varchar(25),
-	_cost_unit_ingred integer,
-	_nutval_ingred integer
+	_cost_unit_ingred numeric,
+	_nutval_ingred numeric
 );
 -----------------------/TYPES-----------------------
 
@@ -617,6 +647,10 @@ call insert_new_category('Холодное');
 call insert_new_category('Горячее');
 call insert_new_category('К чаю');
 
+select id_meal, meal_name from meal;
+select id_ingred, name_ingred, type_unit from ingredient join cat_ingredient on id_ing_cat = id_cat_ingred;
+select * from ingredient;  
+
 insert into cat_ingredient(type_unit) values 
 ('шт.'),
 ('гр.'),
@@ -715,6 +749,42 @@ values ('Яйцо', 7, 157, 1),('Масло растительное', 0.1, 120,
 ('Томатная паста', 0.1, 0.82, 2),('Молотый кориандр', 0.5, 15, 4),('Хмели-сунели', 0.75, 17, 4),
 ('Кинза', 1, 13, 6),('Петрушка', 0.7, 10, 6);
 update ingredient set nutval_ingred = 5.22 where name_ingred = 'Молоко';
+update ingredient set name_ingred='Луковица' where id_ingred = 54;
+update ingredient set cost_unit_ingred=0.075 where name_ingred = 'Мука';
+update ingredient set nutval_ingred=3.25 where name_ingred = 'Дрожжи сухие';
+update ingredient set nutval_ingred=0.539 where name_ingred = 'Масло подсолнечное';
+update ingredient set nutval_ingred=2.7 where name_ingred = 'Бекон';
+update ingredient set nutval_ingred=1.08 where name_ingred = 'Сливочное масло';
+update ingredient set nutval_ingred=0.85 where name_ingred = 'Мука';
+update ingredient set nutval_ingred=0.522 where name_ingred = 'Молоко';
+update ingredient set nutval_ingred=0.372 where name_ingred = 'Свиная шея';
+
+insert into meal_ingredient(id_meal_mi, id_ingredient_mi, count_ingred_mi) values
+(1, 52, 1),(1, 53, 3),(1, 54, 3),(1, 55, 250),(1, 56, 8),(1, 57, 2),
+(1, 58, 60),(1, 59, 1),(1, 60, 750),(1, 61, 1),
+(2, 62, 1),(2, 63, 1),(2, 52, 3),(2, 64, 1),(2, 65, 30),(2, 66, 200),
+(3, 87, 200),(3, 54, 2),(3, 88, 100),(3, 89, 400),(3, 104, 1),
+(3, 80, 1),(3, 76, 3),(3, 90, 100),(3, 59, 1),(3, 86, 1),(3, 91, 300),(3, 92, 1),
+(3, 93, 2),(3, 95, 2),(3, 94, 200),
+(4, 72, 1),(4, 73, 500),(4, 74, 1),(4, 55, 500),(4, 75, 1),
+(4, 76, 2),(4, 52, 2),(4, 77, 50),(4, 78, 1),(4, 79, 1),
+(4, 80, 1),(4, 59, 1),(4, 86, 1),(4, 53, 2),
+(5, 59, 1.5),(5, 67, 7),(5, 53, 8),(5, 68, 11),
+(5, 69, 1),(5, 61, 8),(5, 70, 125),(5, 71, 3),
+(6, 81, 3),(6, 62, 6),(6, 52, 6),(6, 54, 2),(6, 82, 4),(6, 83, 100),
+(6, 84, 400),(6, 85, 200),(6, 59, 1),(6, 86, 1),(6, 104, 1),
+(7, 96, 1),(7, 97, 3),(7, 94, 150),(7, 98, 2),(7, 99, 4),(7, 100, 100),
+(7, 101, 1),(7, 102, 1),(7, 103, 4),(7, 104, 4),(7, 76, 6),(7, 59, 1),(7, 86, 1);
+
+select * from find_meal_ingredients('Луковый хлеб');
+select * from perform_ingredients('Луковый хлеб');
+select * from get_meal_cost('Cалат Мимоза');
+select * from get_meal_nutval('Суп Харчо');
+
+select name_ingred, nutval_ingred, count_ingred_mi,type_unit, count_ingred_mi*nutval_ingred from ingredient, cat_ingredient,meal_ingredient
+where id_cat_ingred = id_ing_cat and id_meal_mi=3 and id_ingred = id_ingredient_mi;
+
+select meal_name from meal where id_meal=7;
 ------------------------/QUERIES-----------------------
 
 
