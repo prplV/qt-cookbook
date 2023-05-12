@@ -482,15 +482,15 @@ $$ language plpgsql;
 ------------------------/PROCEDURES-----------------------
 
 ------------------------TRIGGERS------------------------
-create trigger change_meal_log after delete or insert or update on meal
+create or replace trigger change_meal_log after delete or insert or update on meal
 	for each row 
 		execute procedure ot_log_meal();
 		
-create trigger change_ingredient_log after delete or insert or update on ingredient
+create or replace trigger change_ingredient_log after delete or insert or update on ingredient
 	for each row 
 		execute procedure ot_log_ingredient();
 		
-create trigger change_category_log after delete or insert or update on category
+create or replace trigger change_category_log after delete or insert or update on category
 	for each row 
 		execute procedure ot_log_category();
 ------------------------/TRIGGERS-----------------------
