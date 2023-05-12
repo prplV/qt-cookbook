@@ -152,18 +152,17 @@ returns table (ingredient varchar(25), ingredient_count numeric, category_ingred
 $$
 begin
 	return query
-	select name_ingred, count_ingred_mi, type_unit from ingredient, meal, cat_ingredient, meal_ingredient
-	where m_name = meal_name and id_meal_mi = id_meal 
-	and id_ingred = id_ingredient_mi and id_cat_ingred = id_ing_cat;
+	select ingred, count, type from for_pi_func where m_name = meal;
 end;
 $$ language plpgsql;
+
 
 create or replace function get_meal_cost(m_name varchar(12))
 returns table(final_cost numeric) as
 $$
 begin
-	return query select sum(count_ingred_mi * cost_unit_ingred) from meal, meal_ingredient, ingredient
-	where id_meal = id_meal_mi and m_name = meal_name and id_ingred = id_ingredient_mi;
+	return query 
+	select sum(uni_on) from for_gmc_func where m_name = meal;
 end;
 $$ language plpgsql;
 
@@ -171,11 +170,10 @@ create or replace function get_meal_nutval(m_name varchar(12))
 returns table(final_nutval numeric) as
 $$
 begin
-	return query select sum(count_ingred_mi * nutval_ingred) from meal, meal_ingredient, ingredient
-	where id_meal = id_meal_mi and m_name = meal_name and id_ingred = id_ingredient_mi;
+	return query 
+	select sum(uni_on) from for_gmn_func where m_name = meal;
 end;
 $$ language plpgsql;
-
 
 /*stat functions*/
 create or replace function stat_meal_ingred()
@@ -535,12 +533,25 @@ create index idx_category_log
 create user default_user with password 'user';
 
 create role user_group;
+grant user_group to default_user;
+grant execute on function perform_ingredients to user_group;
+grant execute on function get_meal_cost to user_group;
+grant execute on function get_meal_nutval to user_group;
+grant select on meal_list to user_group;
+grant select on for_pi_func to user_group;
+grant select on for_gmc_func to user_group;
+grant select on for_gmn_func to user_group;
 
+
+select * from get_meal_cost('Луковый хлеб');
+select * from get_meal_nutval('Луковый хлеб');
+select * from perform_ingredients('Луковый хлеб');
+select * from meal_list;
 /*admin*/
 create user moder with password 'admin';
 
 create role admin_group;
-grant admin_group to moder;
+grant admin_group to moder with admin option;
 grant all on sequence cat_ingredient_id_ing_cat_seq to admin_group;
 grant all on sequence category_id_category_seq to admin_group;
 grant all on sequence category_log_id_cl_seq to admin_group;
@@ -563,6 +574,18 @@ grant all privileges on all functions in schema public to admin_group;
 grant all privileges on all procedures in schema public to admin_group;
 grant all privileges on type custom_categories to admin_group;
 grant all privileges on type custom_ingredients to admin_group;
+grant all privileges on database cookbook to admin_group;
+grant all privileges on category_list to admin_group;
+grant all privileges on for_gmn_func to admin_group;
+grant all privileges on for_gmc_func to admin_group;
+grant all privileges on for_pi_func to admin_group;
+grant all privileges on ingredients_cat_ingreds to admin_group;
+grant all privileges on ingredients_list to admin_group;
+grant all privileges on meal_list to admin_group;
+grant all privileges on multy_table_view_cm to admin_group;
+grant all privileges on multy_table_view_im to admin_group;
+grant all privileges on multy_table_view_mc to admin_group;
+grant all privileges on multy_table_view_mi to admin_group;
 
 ------------------------/ROLES-----------------------
 
@@ -608,6 +631,20 @@ create view multy_table_view_im as
 create view ingredients_cat_ingreds as
 	select name_ingred, type_unit from ingredient join cat_ingredient on id_ing_cat = id_cat_ingred 
 	order by name_ingred asc;
+	
+create view for_gmc_func as
+	select meal_name as meal, (count_ingred_mi * cost_unit_ingred) as uni_on from meal, meal_ingredient, ingredient
+	where id_meal = id_meal_mi and id_ingred = id_ingredient_mi;
+	
+create view for_gmn_func as
+	select meal_name as meal, (count_ingred_mi * nutval_ingred) as uni_on from meal, meal_ingredient, ingredient
+	where id_meal = id_meal_mi and id_ingred = id_ingredient_mi;
+	
+create view for_pi_func as
+	select meal_name as meal, name_ingred as ingred, count_ingred_mi as count, type_unit as type 
+	from ingredient, meal, cat_ingredient, meal_ingredient
+	where id_meal_mi = id_meal 
+	and id_ingred = id_ingredient_mi and id_cat_ingred = id_ing_cat;
 ------------------------/VIEWS-----------------------
 
 -----------------------QUERIES------------------------
@@ -785,6 +822,7 @@ select name_ingred, nutval_ingred, count_ingred_mi,type_unit, count_ingred_mi*nu
 where id_cat_ingred = id_ing_cat and id_meal_mi=3 and id_ingred = id_ingredient_mi;
 
 select meal_name from meal where id_meal=7;
+
 ------------------------/QUERIES-----------------------
 
 
