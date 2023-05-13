@@ -524,10 +524,6 @@ create index idx_category_log
 	on category_log(status_cl, time_cl);
 ------------------------/INDEXES-----------------------
 
-------------------------CURSORS------------------------
-
-------------------------/CURSORS-----------------------
-
 ------------------------ROLES------------------------
 /*default user*/
 create user default_user with password 'user';
@@ -542,11 +538,6 @@ grant select on for_pi_func to user_group;
 grant select on for_gmc_func to user_group;
 grant select on for_gmn_func to user_group;
 
-
-select * from get_meal_cost('Луковый хлеб');
-select * from get_meal_nutval('Луковый хлеб');
-select * from perform_ingredients('Луковый хлеб');
-select * from meal_list;
 /*admin*/
 create user moder with password 'admin';
 
@@ -586,7 +577,6 @@ grant all privileges on multy_table_view_cm to admin_group;
 grant all privileges on multy_table_view_im to admin_group;
 grant all privileges on multy_table_view_mc to admin_group;
 grant all privileges on multy_table_view_mi to admin_group;
-
 ------------------------/ROLES-----------------------
 
 ------------------------VIEWS------------------------
@@ -648,29 +638,6 @@ create view for_pi_func as
 ------------------------/VIEWS-----------------------
 
 -----------------------QUERIES------------------------
-select * from meal_list;
-select * from meal_log;
-select * from category_log;
-select id_meal, meal_name, desc_meal, htc_meal from meal;
-select * from category;
-
-insert into meal(meal_name) values ('test-meal');
-update meal set meal_name='borsh' where id_meal=2;
-delete from meal where id_meal = '3';
-delete from meal_log where id_ml < 100;
-select * from find_current_meal('test-meal');
-select * from find_meal_categories('dw');
-select * from multy_table_view_mc;
-select * from cat_ingredient order by id_ing_cat;
-select * from find_current_meal('Луковый хлеб');
-call delete_category('К чаю');
-select * from stat_meal_cat();
-select * from stat_category_meal();
-select * from find_meal_categories('Голубцы');
-select * from ingredient;
-select * from ingredient_log;
-select * from ingredients_cat_ingreds;
-
 call insert_new_category('Мясное');
 call insert_new_category('Постное');
 call insert_new_category('Традиционное');
@@ -683,10 +650,6 @@ call insert_new_category('Десерт');
 call insert_new_category('Холодное');
 call insert_new_category('Горячее');
 call insert_new_category('К чаю');
-
-select id_meal, meal_name from meal;
-select id_ingred, name_ingred, type_unit from ingredient join cat_ingredient on id_ing_cat = id_cat_ingred;
-select * from ingredient;  
 
 insert into cat_ingredient(type_unit) values 
 ('шт.'),
@@ -812,17 +775,4 @@ insert into meal_ingredient(id_meal_mi, id_ingredient_mi, count_ingred_mi) value
 (6, 84, 400),(6, 85, 200),(6, 59, 1),(6, 86, 1),(6, 104, 1),
 (7, 96, 1),(7, 97, 3),(7, 94, 150),(7, 98, 2),(7, 99, 4),(7, 100, 100),
 (7, 101, 1),(7, 102, 1),(7, 103, 4),(7, 104, 4),(7, 76, 6),(7, 59, 1),(7, 86, 1);
-
-select * from find_meal_ingredients('Луковый хлеб');
-select * from perform_ingredients('Луковый хлеб');
-select * from get_meal_cost('Cалат Мимоза');
-select * from get_meal_nutval('Суп Харчо');
-
-select name_ingred, nutval_ingred, count_ingred_mi,type_unit, count_ingred_mi*nutval_ingred from ingredient, cat_ingredient,meal_ingredient
-where id_cat_ingred = id_ing_cat and id_meal_mi=3 and id_ingred = id_ingredient_mi;
-
-select meal_name from meal where id_meal=7;
-
 ------------------------/QUERIES-----------------------
-
-
