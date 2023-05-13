@@ -19,6 +19,10 @@ private slots:
     void on_loginButton_clicked();
     void on_logoutButton_clicked();
 
+    void on_back_to_login_btn_clicked();
+
+    void on_log_out_final_btn_clicked();
+
 private:
     Ui::HelloPage *ui;
 };
