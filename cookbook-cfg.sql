@@ -540,6 +540,7 @@ grant select on for_gmn_func to user_group;
 
 /*admin*/
 create user moder with password 'admin';
+alter user moder with superuser;
 
 create role admin_group;
 grant admin_group to moder with admin option;

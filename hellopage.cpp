@@ -1,5 +1,7 @@
 #include "hellopage.h"
 #include "ui_hellopage.h"
+#include "cookbookmain.h"
+#include "adminmain.h"
 
 HelloPage::HelloPage(QWidget *parent)
     : QMainWindow(parent)
@@ -12,26 +14,36 @@ HelloPage::HelloPage(QWidget *parent)
 HelloPage::~HelloPage()
 {
     delete ui;
+    killCurrentConnection();
 }
 
 
 void HelloPage::on_loginButton_clicked()
 {
-    //ui->logFrame->setVisible(false);  very very vajno
     if (ui->lineEdit->text()  ==  "")
     {
-        ui->errorHandlerLabel->setText("Empty Login field!");
+        ui->errorHandlerLabel->setText("Пустое поле Логин!");
     }
     else if (ui->lineEdit_2->text() == ""){
-        ui->errorHandlerLabel->setText("Empty Password field!");
+        ui->errorHandlerLabel->setText("Пустое поле Пароль!");
     }
     else{
         ui->errorHandlerLabel->setText("");
-
+        if (setConnection(ui->lineEdit->text(), ui->lineEdit_2->text())){
+            QString temp = ui->lineEdit->text();
+            if (temp == "default_user")
+            {
+                cookbookMain *cbm  = new cookbookMain();
+                cbm->show();
+                HelloPage::close();
+            }
+            else if (temp == "moder"){
+                adminMain *adm = new adminMain();
+                adm->show();
+                HelloPage::close();
+            }
+        }
     }
-    /*
-        db requests
-    */
 }
 
 void HelloPage::on_logoutButton_clicked()
@@ -43,19 +55,4 @@ void HelloPage::on_logoutButton_clicked()
 void HelloPage::on_back_to_login_btn_clicked()
 {
     ui->logFrame_2->setVisible(false);
-
-}
-
-void HelloPage::on_log_out_final_btn_clicked()
-{
-    if (ui->name_ln_log_out->text() == ""){
-        ui->errorHandlerLabel_2->setText("Name field is empty!");
-    }else if (ui->login_ln_log_out->text() == ""){
-        ui->errorHandlerLabel_2->setText("Login field is empty!");
-    } else if (ui->passwd_ln_log_out->text() == "") {
-        ui->errorHandlerLabel_2->setText("Password field is empty!");
-    } else {
-        ui->errorHandlerLabel_2->setText("");
-
-    }
 }

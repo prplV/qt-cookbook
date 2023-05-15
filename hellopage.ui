@@ -57,7 +57,7 @@ text-align: center;</string>
      <property name="font">
       <font>
        <family>Noto Mono</family>
-       <pointsize>20</pointsize>
+       <pointsize>19</pointsize>
        <weight>75</weight>
        <bold>true</bold>
       </font>
@@ -66,7 +66,7 @@ text-align: center;</string>
       <enum>QFrame::NoFrame</enum>
      </property>
      <property name="text">
-      <string>Welcome</string>
+      <string>Добро пожаловать</string>
      </property>
      <property name="textFormat">
       <enum>Qt::PlainText</enum>
@@ -100,7 +100,7 @@ text-align: center;</string>
       <string notr="true">background-color: rgb(221, 221, 221)</string>
      </property>
      <property name="text">
-      <string>Log in</string>
+      <string>Вход</string>
      </property>
      <property name="autoDefault">
       <bool>false</bool>
@@ -130,7 +130,7 @@ text-align: center;</string>
       <cursorShape>PointingHandCursor</cursorShape>
      </property>
      <property name="text">
-      <string>Log out</string>
+      <string>Регистрация</string>
      </property>
     </widget>
     <widget class="QLabel" name="login_label_2">
@@ -154,7 +154,7 @@ text-align: center;</string>
       <enum>QFrame::NoFrame</enum>
      </property>
      <property name="text">
-      <string>it's your pocket cookbook</string>
+      <string>Ваша карманная книга рецептов</string>
      </property>
      <property name="textFormat">
       <enum>Qt::PlainText</enum>
@@ -198,7 +198,7 @@ text-align: center;</string>
       <bool>false</bool>
      </property>
      <property name="placeholderText">
-      <string notr="true">Login</string>
+      <string notr="true">Логин</string>
      </property>
     </widget>
     <widget class="QLineEdit" name="lineEdit_2">
@@ -222,7 +222,7 @@ text-align: center;</string>
       <set>Qt::AlignCenter</set>
      </property>
      <property name="placeholderText">
-      <string>Password</string>
+      <string>Пароль</string>
      </property>
     </widget>
     <widget class="QLabel" name="errorHandlerLabel">
@@ -294,7 +294,7 @@ text-align: center;</string>
        <enum>QFrame::NoFrame</enum>
       </property>
       <property name="text">
-       <string>Log out</string>
+       <string>Регистрация</string>
       </property>
       <property name="textFormat">
        <enum>Qt::PlainText</enum>
@@ -328,7 +328,7 @@ text-align: center;</string>
        <string notr="true">background-color: rgb(221, 221, 221)</string>
       </property>
       <property name="text">
-       <string>Back</string>
+       <string>Назад</string>
       </property>
       <property name="autoDefault">
        <bool>false</bool>
@@ -358,7 +358,7 @@ text-align: center;</string>
        <cursorShape>PointingHandCursor</cursorShape>
       </property>
       <property name="text">
-       <string>Log out</string>
+       <string>Создать аккаунт</string>
       </property>
      </widget>
      <widget class="Line" name="line_2">
@@ -396,7 +396,7 @@ text-align: center;</string>
        <bool>false</bool>
       </property>
       <property name="placeholderText">
-       <string notr="true">Login</string>
+       <string notr="true">Логин</string>
       </property>
      </widget>
      <widget class="QLineEdit" name="passwd_ln_log_out">
@@ -420,7 +420,7 @@ text-align: center;</string>
        <set>Qt::AlignCenter</set>
       </property>
       <property name="placeholderText">
-       <string>Password</string>
+       <string>Пароль</string>
       </property>
      </widget>
      <widget class="QLabel" name="errorHandlerLabel_2">
@@ -473,7 +473,7 @@ color: rgb(237, 51, 59);</string>
        <bool>false</bool>
       </property>
       <property name="placeholderText">
-       <string notr="true">Name</string>
+       <string notr="true">Имя</string>
       </property>
      </widget>
     </widget>

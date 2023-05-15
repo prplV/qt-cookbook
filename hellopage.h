@@ -2,6 +2,7 @@
 #define HELLOPAGE_H
 
 #include <QMainWindow>
+#include "dbconnection.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class HelloPage; }
@@ -21,7 +22,7 @@ private slots:
 
     void on_back_to_login_btn_clicked();
 
-    void on_log_out_final_btn_clicked();
+
 
 private:
     Ui::HelloPage *ui;
