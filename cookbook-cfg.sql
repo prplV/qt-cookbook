@@ -156,6 +156,14 @@ begin
 end;
 $$ language plpgsql;
 
+create or replace function get_meal_htc(m_name varchar(12))
+returns table(htc text) as
+$$
+begin 
+	return query
+	select mh.htc from meal_htc mh where m_name = mh.meal;
+end; 
+$$ language plpgsql;
 
 create or replace function get_meal_cost(m_name varchar(12))
 returns table(final_cost numeric) as
@@ -537,6 +545,8 @@ grant select on meal_list to user_group;
 grant select on for_pi_func to user_group;
 grant select on for_gmc_func to user_group;
 grant select on for_gmn_func to user_group;
+grant execute on function get_meal_htc to user_group;
+grant select on meal_htc to user_group;
 
 /*admin*/
 create user moder with password 'admin';
@@ -583,6 +593,9 @@ grant all privileges on multy_table_view_mi to admin_group;
 ------------------------VIEWS------------------------
 create view meal_list as
 	select meal_name as mname, desc_meal as description from meal order by meal_name asc;
+	
+create view meal_htc as
+	select meal_name as meal, htc_meal as htc from meal;
 
 create view category_list as
 	select name_category as cname from category order by name_category;
