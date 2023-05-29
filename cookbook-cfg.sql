@@ -216,6 +216,37 @@ begin
 end; 
 $$ language plpgsql;
 /*end of sf block*/
+
+create or replace function get_meal_nutval_cursor(m_name varchar(12))
+returns int as
+$$
+declare 
+	nutval numeric;
+	quantity numeric;
+	total_nutval numeric := 0;
+	quantity_cur cursor for select count_ingred_mi from meal, meal_ingredient, ingredient
+	where id_meal = id_meal_mi and id_ingred = id_ingredient_mi and meal_name = m_name;
+	nutval_cur cursor for select nutval_ingred from meal, meal_ingredient, ingredient
+	where id_meal = id_meal_mi and id_ingred = id_ingredient_mi and meal_name = m_name;
+begin 
+	open quantity_cur;
+	open nutval_cur;
+	fetch quantity_cur into quantity;
+	fetch nutval_cur into nutval;
+	
+	loop
+		fetch quantity_cur into quantity;
+		fetch nutval_cur into nutval;
+		if not found then exit; end if;
+		total_nutval := total_nutval + (quantity * nutval);
+	end loop;
+	
+	close quantity_cur;
+	close nutval_cur;
+	raise notice 'Total Nutval is %', total_nutval;
+	return 1;
+end;
+$$ language plpgsql;
 ------------------------/FUNCTIONES-----------------------
 
 ------------------------PROCEDURES------------------------
@@ -393,7 +424,7 @@ $$  language plpgsql;
 
 create or replace procedure update_ingred_name(i_name varchar(25), new_i_name varchar(25)) as
 $$
-declare 
+declare
 	res integer;
 begin
 	if (exists(select 1 from ingredient where name_ingred =  i_name)) then
@@ -412,7 +443,7 @@ $$  language plpgsql;
 
 create or replace procedure update_ingred_cost_unit(i_name varchar(25), new_cu int) as
 $$
-declare 
+declare
 	res integer;
 begin
 	if (exists(select 1 from ingredient where name_ingred =  i_name)) then
@@ -485,6 +516,7 @@ begin
 	end if;
 end;
 $$ language plpgsql;
+
 ------------------------/PROCEDURES-----------------------
 
 ------------------------TRIGGERS------------------------
@@ -649,6 +681,17 @@ create view for_pi_func as
 	from ingredient, meal, cat_ingredient, meal_ingredient
 	where id_meal_mi = id_meal 
 	and id_ingred = id_ingredient_mi and id_cat_ingred = id_ing_cat;
+	
+create view case_using as 
+	select name_ingred,
+	case
+		when type_unit in ('мл.', 'л')
+		then 'жидкое'
+		else 'твердое' end
+	from ingredient 
+	join cat_ingredient 
+	on id_ing_cat = id_cat_ingred 
+	order by name_ingred asc;
 ------------------------/VIEWS-----------------------
 
 -----------------------QUERIES------------------------
@@ -789,4 +832,28 @@ insert into meal_ingredient(id_meal_mi, id_ingredient_mi, count_ingred_mi) value
 (6, 84, 400),(6, 85, 200),(6, 59, 1),(6, 86, 1),(6, 104, 1),
 (7, 96, 1),(7, 97, 3),(7, 94, 150),(7, 98, 2),(7, 99, 4),(7, 100, 100),
 (7, 101, 1),(7, 102, 1),(7, 103, 4),(7, 104, 4),(7, 76, 6),(7, 59, 1),(7, 86, 1);
+
+create or replace procedure update_cat_ingred(old_type_unit text, new_type_unit text) as 
+$$
+begin 
+	update ingredients_cat_ingreds set type_unit = new_type_unit where type_unit=old_type_unit;
+end;
+$$ language plpgsql;
+--subquery
+--1
+select meal_name from (select * from meal where desc_meal <> 'no description') as tempTable 
+where htc_meal <> 'no how to  eat expression';
+--2 + correlated
+select meal_name, 
+(select (count(*)) from meal_ingredient mi where m.id_meal = mi.id_meal_mi)
+from meal m;
+
+--correlated
+select m.meal_name, (select count(*) from meal_category mc where c.id_category = mc.id_category_mc)
+from category c, meal m;
+
+--any 
+select i.name_ingred, ci.type_unit from ingredient i 
+join cat_ingredient ci on ci.id_ing_cat = i.id_cat_ingred
+where ci.type_unit = any(array['мл.', 'л']);
 ------------------------/QUERIES-----------------------
