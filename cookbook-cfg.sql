@@ -833,12 +833,6 @@ insert into meal_ingredient(id_meal_mi, id_ingredient_mi, count_ingred_mi) value
 (7, 96, 1),(7, 97, 3),(7, 94, 150),(7, 98, 2),(7, 99, 4),(7, 100, 100),
 (7, 101, 1),(7, 102, 1),(7, 103, 4),(7, 104, 4),(7, 76, 6),(7, 59, 1),(7, 86, 1);
 
-create or replace procedure update_cat_ingred(old_type_unit text, new_type_unit text) as 
-$$
-begin 
-	update ingredients_cat_ingreds set type_unit = new_type_unit where type_unit=old_type_unit;
-end;
-$$ language plpgsql;
 --subquery
 --1
 select meal_name from (select * from meal where desc_meal <> 'no description') as tempTable 
@@ -856,4 +850,28 @@ from category c, meal m;
 select i.name_ingred, ci.type_unit from ingredient i 
 join cat_ingredient ci on ci.id_ing_cat = i.id_cat_ingred
 where ci.type_unit = any(array['мл.', 'л']);
+
+--ingredients_cat_ingreds
+
+create or replace trigger update_ici_view instead of update on ingredients_cat_ingreds
+	for each row 
+		execute procedure ot_ici_update();
+		
+create or replace function ot_ici_update()
+returns trigger as
+$$
+begin 
+	if (old.type_unit <> new.type_unit) then
+		update cat_ingredient set type_unit = new.type_unit where type_unit = old.type_unit;
+	end if;
+	if (old.name_ingred <> new.name_ingred) then
+		call update_ingred_name(old.name_ingred, new.name_ingred);
+	end if;
+	return null;
+end;
+$$ language plpgsql;
+
+update ingredients_cat_ingreds set type_unit = 'гр.' where name_ingred = 'Бекон';
+select * from ingredients_cat_ingreds;
+--ingredients_cat_ingreds
 ------------------------/QUERIES-----------------------
