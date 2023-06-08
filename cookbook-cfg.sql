@@ -1,6 +1,3 @@
---create database cookbook;
-
-------------------------TABLES------------------------
 create table meal(
 	id_meal serial not null primary key,
 	desc_meal text not null default 'no description',
@@ -71,11 +68,7 @@ create table ingredient_log(
 	time_il timestamp not null,
 	id_changed_ingredient int not null default -1
 );
-------------------------/TABLES-----------------------
 
-------------------------FUNCTIONES------------------------
-
-/* on trigger functiones */ 
 create or replace function ot_log_meal()
 returns trigger as $$
 begin
@@ -117,7 +110,6 @@ begin
 	return null;
 end; 
 $$ language plpgsql;
-/* end of ott block*/ 
 
 create or replace function find_current_meal(m_name varchar(15))
 returns table(_meal_name varchar(15), _desc_meal text, _htc_meal text) as
@@ -183,7 +175,6 @@ begin
 end;
 $$ language plpgsql;
 
-/*stat functions*/
 create or replace function stat_meal_ingred()
 returns table(meal_name varchar(15), ingred_count bigint) as
 $$
@@ -215,7 +206,6 @@ begin
 	return query select * from multy_table_view_im;
 end; 
 $$ language plpgsql;
-/*end of sf block*/
 
 create or replace function get_meal_nutval_cursor(m_name varchar(12))
 returns int as
@@ -247,9 +237,35 @@ begin
 	return 1;
 end;
 $$ language plpgsql;
-------------------------/FUNCTIONES-----------------------
 
-------------------------PROCEDURES------------------------
+create or replace function ot_ici_update()
+returns trigger as
+$$
+declare 
+	id_c int;
+	id_cur cursor for select id_ing_cat from cat_ingredient where type_unit = new.type_unit;
+begin 
+	if (TG_OP = 'UPDATE') then
+		if (old.type_unit <> new.type_unit) then
+			update cat_ingredient set type_unit = new.type_unit where type_unit = old.type_unit;
+		end if;
+		if (old.name_ingred <> new.name_ingred) then
+			call update_ingred_name(old.name_ingred, new.name_ingred);
+		end if;
+		return null;
+	elseif (TG_OP = 'INSERT') then
+		insert into cat_ingredient(type_unit) values (new.type_unit);
+		open id_cur;
+		fetch id_cur into id_c;
+		close id_cur;
+		insert into ingredients(name_ingred, id_cat_ingred) values (new.name_ingred, id_c);
+	elseif (TG_OP = 'DELETE') then
+		delete from ingredient where name_ingred = old.name_ingred;
+		delete from cat_ingredient where type_unit = old.type_unit;
+	end if;
+end;
+$$ language plpgsql;
+
 create or replace procedure insert_new_meal(m_name varchar(15), m_desc text, m_htc text) as
 $$
 declare 
@@ -517,9 +533,6 @@ begin
 end;
 $$ language plpgsql;
 
-------------------------/PROCEDURES-----------------------
-
-------------------------TRIGGERS------------------------
 create or replace trigger change_meal_log after delete or insert or update on meal
 	for each row 
 		execute procedure ot_log_meal();
@@ -531,9 +544,11 @@ create or replace trigger change_ingredient_log after delete or insert or update
 create or replace trigger change_category_log after delete or insert or update on category
 	for each row 
 		execute procedure ot_log_category();
-------------------------/TRIGGERS-----------------------
+		
+create or replace trigger update_ici_view instead of update or delete or insert on ingredients_cat_ingreds
+	for each row 
+		execute procedure ot_ici_update();
 
------------------------TYPES------------------------
 create type custom_categories as (
 	_category_name varchar(12)
 );
@@ -542,30 +557,81 @@ create type custom_ingredients as (
 	_cost_unit_ingred numeric,
 	_nutval_ingred numeric
 );
------------------------/TYPES-----------------------
 
-------------------------INDEXES------------------------
 create index idx_meal 
 	on meal(meal_name);
 
+create index idx_id_meal
+	on meal
+	using hash (id_meal);
+
 create index idx_category 
 	on category(name_category);
+	
+create index idx_id_cat
+	on category
+	using hash (id_category);
 
 create index idx_ingredient 
-	on ingredient(name_ingred, cost_unit_ingred, nutval_ingred, id_cat_ingred);
+	on ingredient(name_ingred);
+
+create index idx_ingred_cu
+	on ingredient
+	using hash (cost_unit_ingred);
+	
+create index idx_inged_nv
+	on ingredient
+	using hash (nutval_ingred);
+
+create index idx_id_cat_ingred 
+	on ingredient
+	using hash (id_cat_ingred);
 	
 create index idx_meal_log 
-	on meal_log(status_ml, time_ml);
+	on meal_log(status_ml);
+	
+create index idx_meallog_id
+	on meal_log
+	using hash (id_ml);
+	
+create index idx_meallog_time
+	on meal_log
+	using hash (time_ml);
+	
+create index idx_meallog_id_changed
+	on meal_log
+	using hash (id_changed_meal);
 	
 create index idx_ingredient_log 
-	on ingredient_log(status_il, time_il);
+	on ingredient_log(status_il);
+	
+create index idx_ingredientlog_id
+	on ingredient_log
+	using hash(id_il);
+	
+create index idx_ingredientlog_time
+	on ingredient_log
+	using hash(time_il);
+	
+create index idx_ingredientlog_id_changed
+	on ingredient_log
+	using hash(id_changed_ingredient);
 	
 create index idx_category_log 
-	on category_log(status_cl, time_cl);
-------------------------/INDEXES-----------------------
+	on category_log(status_cl);
+	
+create index idx_category_id
+	on category_log
+	using hash (id_cl);
+	
+create index idx_category_time
+	on category_log
+	using hash (time_cl);
+	
+create index idx_category_id_changed
+	on category_log
+	using hash (id_changed_category);
 
-------------------------ROLES------------------------
-/*default user*/
 create user default_user with password 'user';
 
 create role user_group;
@@ -580,7 +646,6 @@ grant select on for_gmn_func to user_group;
 grant execute on function get_meal_htc to user_group;
 grant select on meal_htc to user_group;
 
-/*admin*/
 create user moder with password 'admin';
 alter user moder with superuser;
 
@@ -620,9 +685,7 @@ grant all privileges on multy_table_view_cm to admin_group;
 grant all privileges on multy_table_view_im to admin_group;
 grant all privileges on multy_table_view_mc to admin_group;
 grant all privileges on multy_table_view_mi to admin_group;
-------------------------/ROLES-----------------------
 
-------------------------VIEWS------------------------
 create view meal_list as
 	select meal_name as mname, desc_meal as description from meal order by meal_name asc;
 	
@@ -692,9 +755,43 @@ create view case_using as
 	join cat_ingredient 
 	on id_ing_cat = id_cat_ingred 
 	order by name_ingred asc;
-------------------------/VIEWS-----------------------
+	
+create view subquery_from as
+	select meal_name 
+	from (select * from meal_category mc, meal mm
+		  where mm.id_meal = mc.id_meal_mc and mc.id_category_mc = (select id_category 
+																 from category where name_category = 'Семейное')) 
+	as tempTable;
+	
+create view subquery_select as 
+	select meal_name, 
+	(select (count(*)) from meal_ingredient mi where m.id_meal = mi.id_meal_mi)
+	from meal m;
+	
+create view subquery_where as
+	select * from meal_log 
+	where id_ml in (select id_meal from meal 
+					where meal_name is null or desc_meal is null or htc_meal is null);
+	
+create view predicat_any as
+	select mm.meal_name 
+	from meal mm, category cc, meal_category mc
+	where mm.id_meal = mc.id_meal_mc and cc.id_category = mc.id_category_mc
+	and cc.name_category = any (select name_category from category 
+								where (name_category = 'Традиционное' or name_category = 'Праздничное') 
+								and name_category = 'Первое');
+								
+create view correlated_1 as
+	select meal_name as meal, 
+	(select ((count(*)*100 / (select count(*) from ingredient))) as Percent_Ingred_rounded
+	from meal_ingredient mi_2 group by id_meal_mi having mm.id_meal = id_meal_mi)
+	from meal mm;
+	
+create view correlated_2 as
+	select name_category, 
+	(select count(*) from category_log where id_changed_category = cc.id_category) as Count_Categorieslogs
+	from category cc;
 
------------------------QUERIES------------------------
 call insert_new_category('Мясное');
 call insert_new_category('Постное');
 call insert_new_category('Традиционное');
@@ -832,46 +929,3 @@ insert into meal_ingredient(id_meal_mi, id_ingredient_mi, count_ingred_mi) value
 (6, 84, 400),(6, 85, 200),(6, 59, 1),(6, 86, 1),(6, 104, 1),
 (7, 96, 1),(7, 97, 3),(7, 94, 150),(7, 98, 2),(7, 99, 4),(7, 100, 100),
 (7, 101, 1),(7, 102, 1),(7, 103, 4),(7, 104, 4),(7, 76, 6),(7, 59, 1),(7, 86, 1);
-
---subquery
---1
-select meal_name from (select * from meal where desc_meal <> 'no description') as tempTable 
-where htc_meal <> 'no how to  eat expression';
---2 + correlated
-select meal_name, 
-(select (count(*)) from meal_ingredient mi where m.id_meal = mi.id_meal_mi)
-from meal m;
-
---correlated
-select m.meal_name, (select count(*) from meal_category mc where c.id_category = mc.id_category_mc)
-from category c, meal m;
-
---any 
-select i.name_ingred, ci.type_unit from ingredient i 
-join cat_ingredient ci on ci.id_ing_cat = i.id_cat_ingred
-where ci.type_unit = any(array['мл.', 'л']);
-
---ingredients_cat_ingreds
-
-create or replace trigger update_ici_view instead of update on ingredients_cat_ingreds
-	for each row 
-		execute procedure ot_ici_update();
-		
-create or replace function ot_ici_update()
-returns trigger as
-$$
-begin 
-	if (old.type_unit <> new.type_unit) then
-		update cat_ingredient set type_unit = new.type_unit where type_unit = old.type_unit;
-	end if;
-	if (old.name_ingred <> new.name_ingred) then
-		call update_ingred_name(old.name_ingred, new.name_ingred);
-	end if;
-	return null;
-end;
-$$ language plpgsql;
-
-update ingredients_cat_ingreds set type_unit = 'гр.' where name_ingred = 'Бекон';
-select * from ingredients_cat_ingreds;
---ingredients_cat_ingreds
-------------------------/QUERIES-----------------------
