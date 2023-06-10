@@ -900,79 +900,62 @@ create type custom_ingredients as (
 	_nutval_ingred numeric
 );
 
-create index idx_meal 
-	on meal(meal_name);
-
-create index idx_id_meal
+create index idx_meal_name
 	on meal
-	using hash (id_meal);
+	using hash (meal_name);
 
-create index idx_category 
-	on category(name_category);
-	
-create index idx_id_cat
+create index idx_ingred_name 
+	on ingredient
+	using hash (name_ingred);
+
+create index idx_category_name
 	on category
-	using hash (id_category);
+	using hash (name_category);
+	
+explain select name_category from category where name_category = 'fawfawf';
 
-create index idx_ingredient 
-	on ingredient(name_ingred);
+create index idx_time_meallog
+	on meal_log(time_ml)
+	where time_ml > date ('2003-07-03 00:00:00');
+	
+create index idx_time_categorylog
+	on category_log(time_cl)
+	where time_cl > date ('2003-07-03 00:00:00');
+	
+create index idx_time_ingredlog
+	on ingredient_log(time_il)
+	where time_il > date ('2003-07-03 00:00:00');
+	
+explain select * from meal_log where time_ml > date ('2013-12-27 14:35:00');
 
-create index idx_ingred_cu
+create index idx_ingred_nutval
 	on ingredient
-	using hash (cost_unit_ingred);
+	using btree (nutval_ingred);
 	
-create index idx_inged_nv
+create index idx_ingred_cost_per_unit
 	on ingredient
-	using hash (nutval_ingred);
+	using btree (cost_unit_ingred);
 
-create index idx_id_cat_ingred 
-	on ingredient
-	using hash (id_cat_ingred);
+explain select * from ingredient where nutval_ingred = 1 order by nutval_ingred;
+
+create index idx_ml_status
+	on meal_log(upper(status_ml));
 	
-create index idx_meal_log 
-	on meal_log(status_ml);
+create index idx_cl_status
+	on category_log(upper(status_cl));
 	
-create index idx_meallog_id
-	on meal_log
-	using hash (id_ml);
+create index idx_il_status
+	on ingredient_log(upper(status_il));
 	
-create index idx_meallog_time
-	on meal_log
-	using hash (time_ml);
+explain select * from meal_log where upper(status_ml) = 'I';
+
+create index idx_meal_category
+	on meal_category(id_meal_mc, id_category_mc);
 	
-create index idx_meallog_id_changed
-	on meal_log
-	using hash (id_changed_meal);
-	
-create index idx_ingredient_log 
-	on ingredient_log(status_il);
-	
-create index idx_ingredientlog_id
-	on ingredient_log
-	using hash(id_il);
-	
-create index idx_ingredientlog_time
-	on ingredient_log
-	using hash(time_il);
-	
-create index idx_ingredientlog_id_changed
-	on ingredient_log
-	using hash(id_changed_ingredient);
-	
-create index idx_category_log 
-	on category_log(status_cl);
-	
-create index idx_category_id
-	on category_log
-	using hash (id_cl);
-	
-create index idx_category_time
-	on category_log
-	using hash (time_cl);
-	
-create index idx_category_id_changed
-	on category_log
-	using hash (id_changed_category);
+create index idx_meal_ingredient
+	on meal_ingredient(id_meal_mi, id_ingredient_mi);
+
+explain select * from meal_category order by id_meal_mc;
 
 create user default_user with password 'user';
 
