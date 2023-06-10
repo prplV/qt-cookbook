@@ -1133,6 +1133,13 @@ create view correlated_2 as
 	select name_category, 
 	(select count(*) from category_log where id_changed_category = cc.id_category) as Count_Categorieslogs
 	from category cc;
+	
+create view correlated_3 as
+	select name_ingred, (select type_unit 
+						from cat_ingredient ci where i.id_cat_ingred = ci.id_ing_cat 
+						limit 1) 
+	from ingredient i
+	where 100 = any (select count_ingred_mi from meal_ingredient where id_ingredient_mi = i.id_ingred);
 
 call insert_new_category('Мясное');
 call insert_new_category('Постное');
