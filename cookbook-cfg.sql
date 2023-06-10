@@ -533,6 +533,348 @@ begin
 end;
 $$ language plpgsql;
 
+create or replace procedure insert_new_category_log(status varchar(1), tm timestamp, id_cc int) as 
+$$
+declare 
+	res int;
+begin 
+	if (exists(select 1 from category_log where status_cl = status and time_cl = tm and id_cc = id_changed_category)) then
+		res := 1;
+	else
+		res := 0;
+	end if;
+	if (res = 1) then 
+		rollback;
+	else
+		insert into category_log(status_cl, time_cl, id_changed_category) values (status, tm, id_cc);
+		commit;
+	end if;
+end;
+$$ language plpgsql;
+
+create or replace procedure insert_new_meal_log(status varchar(1), tm timestamp, id_cc int) as 
+$$
+declare 
+	res int;
+begin 
+	if (exists(select 1 from meal_log where status_ml = status and time_ml = tm and id_cc = id_changed_meal)) then
+		res := 1;
+	else
+		res := 0;
+	end if;
+	if (res = 1) then 
+		rollback;
+	else
+		insert into meal_log(status_ml, time_ml, id_changed_meal) values (status, tm, id_cc);
+		commit;
+	end if;
+end;
+$$ language plpgsql;
+
+create or replace procedure insert_new_ingredient_log(status varchar(1), tm timestamp, id_cc int) as 
+$$
+declare 
+	res int;
+begin 
+	if (exists(select 1 from ingredient_log where status_il = status and time_il = tm and id_cc = id_changed_ingredient)) then
+		res := 1;
+	else
+		res := 0;
+	end if;
+	if (res = 1) then 
+		rollback;
+	else
+		insert into ingredient_log(status_il, time_il, id_changed_ingredient) values (status, tm, id_cc);
+		commit;
+	end if;
+end;
+$$ language plpgsql;
+
+create or replace procedure insert_new_cat_ingred(tu text) as 
+$$
+declare 
+	res int;
+begin 
+	if (exists(select 1 from cat_ingredient where type_unit = tu)) then
+		res := 1;
+	else
+		res := 0;
+	end if;
+	if (res = 1) then 
+		rollback;
+	else
+		insert into cat_ingredient(type_unit) values (tu);
+		commit;
+	end if;
+end;
+$$ language plpgsql;
+
+create or replace procedure insert_new_meal_category(f_id int, s_id int) as 
+$$
+declare 
+	res int;
+begin 
+	if (exists(select 1 from meal_category where id_meal_mc = f_id and s_id = id_category_mc)) then
+		res := 1;
+	else
+		res := 0;
+	end if;
+	if (res = 1) then 
+		rollback;
+	else
+		insert into meal_category(id_meal_mc, id_category_mc) values (f_id, s_id);
+		commit;
+	end if;
+end;
+$$ language plpgsql;
+
+create or replace procedure insert_new_meal_ingredient(f_id int, s_id int, cc numeric) as 
+$$
+declare 
+	res int;
+begin 
+	if (exists(select 1 from meal_ingredient where id_meal_mi = f_id and s_id = id_ingredient_mi)) then
+		res := 1;
+	else
+		res := 0;
+	end if;
+	if (res = 1) then 
+		rollback;
+	else
+		insert into meal_ingredient(id_meal_mi, id_ingredient_mi, count_ingred_mi) values (f_id, s_id, cc);
+		commit;
+	end if;
+end;
+$$ language plpgsql;
+
+create or replace procedure delete_category_log(status varchar(1), tm timestamp, id_cc int) as 
+$$
+declare 
+	res int;
+begin 
+	if (exists(select 1 from category_log where status_cl = status and time_cl = tm and id_cc = id_changed_category)) then
+		res := 1;
+	else
+		res := 0;
+	end if;
+	if (res = 1) then 
+		delete from category_log where status_cl = status and time_cl = tm and id_cc = id_changed_category;
+		commit;
+	else
+		rollback;
+	end if;
+end;
+$$ language plpgsql;
+
+create or replace procedure delete_meal_log(status varchar(1), tm timestamp, id_cc int) as 
+$$
+declare 
+	res int;
+begin 
+	if (exists(select 1 from meal_log where status_ml = status and time_ml = tm and id_cc = id_changed_meal)) then
+		res := 1;
+	else
+		res := 0;
+	end if;
+	if (res = 1) then 
+		delete from meal_log where status_ml = status and time_ml = tm and id_cc = id_changed_meal;
+		commit;
+	else
+		rollback;
+	end if;
+end;
+$$ language plpgsql;
+
+create or replace procedure delete_ingredient_log(status varchar(1), tm timestamp, id_cc int) as 
+$$
+declare 
+	res int;
+begin 
+	if (exists(select 1 from ingredient_log where status_il = status and time_il = tm and id_cc = id_changed_ingredient)) then
+		res := 1;
+	else
+		res := 0;
+	end if;
+	if (res = 1) then 
+		delete from ingredient_log where status_il = status and time_il = tm and id_cc = id_changed_ingredient;
+		commit;
+	else
+		rollback;
+	end if;
+end;
+$$ language plpgsql;
+
+create or replace procedure delete_cat_ingred(tu text) as 
+$$
+declare 
+	res int;
+begin 
+	if (exists(select 1 from cat_ingredient where type_unit = tu)) then
+		res := 1;
+	else
+		res := 0;
+	end if;
+	if (res = 1) then 
+		delete from cat_ingredient where type_unit = tu;
+		commit;
+	else
+		rollback;
+	end if;
+end;
+$$ language plpgsql;
+
+create or replace procedure delete_meal_category(f_id int, s_id int) as 
+$$
+declare 
+	res int;
+begin 
+	if (exists(select 1 from meal_category where id_meal_mc = f_id and s_id = id_category_mc)) then
+		res := 1;
+	else
+		res := 0;
+	end if;
+	if (res = 1) then 
+		delete from meal_category where id_meal_mc = f_id and s_id = id_category_mc;
+		commit;
+	else
+		rollback;
+	end if;
+end;
+$$ language plpgsql;
+
+create or replace procedure delete_meal_ingredient(f_id int, s_id int) as 
+$$
+declare 
+	res int;
+begin 
+	if (exists(select 1 from meal_ingredient where id_meal_mi = f_id and s_id = id_ingredient_mi)) then
+		res := 1;
+	else
+		res := 0;
+	end if;
+	if (res = 1) then 
+		delete from meal_ingredient where id_meal_mi = f_id and s_id = id_ingredient_mi;
+		commit;
+	else
+		rollback;
+	end if;
+end;
+$$ language plpgsql;
+
+create or replace procedure update_category_log_status(tm timestamp, status varchar(1)) as 
+$$
+declare 
+	res int;
+begin 
+	if (exists(select 1 from category_log where status_cl <> status and time_cl = tm)) then
+		res := 1;
+	else
+		res := 0;
+	end if;
+	if (res = 1) then 
+		update category_log set status_cl = status where time_cl = tm;
+		commit;
+	else
+		rollback;
+	end if;
+end;
+$$ language plpgsql;
+
+create or replace procedure update_meal_log_status(tm timestamp, status varchar(1)) as 
+$$
+declare 
+	res int;
+begin 
+	if (exists(select 1 from meal_log where status_ml <> status and time_ml = tm)) then
+		res := 1;
+	else
+		res := 0;
+	end if;
+	if (res = 1) then 
+		update meal_log set status_ml = status where time_ml = tm;
+		commit;
+	else
+		rollback;
+	end if;
+end;
+$$ language plpgsql;
+
+create or replace procedure update_ingredient_log_status(tm timestamp, status varchar(1)) as 
+$$
+declare 
+	res int;
+begin 
+	if (exists(select 1 from ingredient_log where status_il <> status and time_il = tm)) then
+		res := 1;
+	else
+		res := 0;
+	end if;
+	if (res = 1) then 
+		update ingredient_log set status_il = status where time_il = tm;
+		commit;
+	else
+		rollback;
+	end if;
+end;
+$$ language plpgsql;
+
+create or replace procedure update_cat_ingred(tu text, tu_new text) as 
+$$
+declare 
+	res int;
+begin 
+	if (exists(select 1 from cat_ingredient where type_unit = tu)) then
+		res := 1;
+	else
+		res := 0;
+	end if;
+	if (res = 1) then 
+		update cat_ingredient set type_unit = tu_new where type_unit = tu;
+		commit;
+	else
+		rollback;
+	end if;
+end;
+$$ language plpgsql;
+
+create or replace procedure update_meal_category_s_id(f_id int, s_id int, new_s_id int) as 
+$$
+declare 
+	res int;
+begin 
+	if (exists(select 1 from meal_category where id_meal_mc = f_id and s_id = id_category_mc)) then
+		res := 1;
+	else
+		res := 0;
+	end if;
+	if (res = 1) then 
+		update meal_category set id_category_mc = new_s_id where id_meal_mc = f_id and s_id = id_category_mc;
+		commit;
+	else
+		rollback;
+	end if;
+end;
+$$ language plpgsql;
+
+create or replace procedure update_meal_ingredient_s_id(f_id int, s_id int, new_s_id int) as 
+$$
+declare 
+	res int;
+begin 
+	if (exists(select 1 from meal_ingredient where id_meal_mi = f_id and s_id = id_ingredient_mi)) then
+		res := 1;
+	else
+		res := 0;
+	end if;
+	if (res = 1) then 
+		update meal_ingredient set id_ingredient_mi = new_s_id where id_meal_mi = f_id and s_id = id_ingredient_mi;
+		commit;
+	else
+		rollback;
+	end if;
+end;
+$$ language plpgsql;
+
 create or replace trigger change_meal_log after delete or insert or update on meal
 	for each row 
 		execute procedure ot_log_meal();
